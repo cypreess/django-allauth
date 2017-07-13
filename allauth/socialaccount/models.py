@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from django.contrib.auth import authenticate
+from django.contrib.postgres.fields import JSONField
 from django.contrib.sites.models import Site
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
@@ -12,12 +13,12 @@ from django.utils.translation import ugettext_lazy as _
 import allauth.app_settings
 from allauth.account.models import EmailAddress
 from allauth.account.utils import get_next_redirect_url, setup_user_email
+from allauth.socialaccount.models_helper import ShortPrefixedIdModel
 from allauth.utils import get_user_model
 
 from . import app_settings, providers
 from ..utils import get_request_param
 from .adapter import get_adapter
-from .fields import JSONField
 
 
 try:
@@ -43,7 +44,9 @@ class SocialAppManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class SocialApp(models.Model):
+class SocialApp(ShortPrefixedIdModel, models.Model):
+    ID_PREFIX = 'scp'
+
     objects = SocialAppManager()
 
     provider = models.CharField(verbose_name=_('provider'),
@@ -77,7 +80,9 @@ class SocialApp(models.Model):
 
 
 @python_2_unicode_compatible
-class SocialAccount(models.Model):
+class SocialAccount(ShortPrefixedIdModel, models.Model):
+    ID_PREFIX = 'sca'
+
     user = models.ForeignKey(allauth.app_settings.USER_MODEL,
                              on_delete=models.CASCADE)
     provider = models.CharField(verbose_name=_('provider'),
@@ -132,7 +137,9 @@ class SocialAccount(models.Model):
 
 
 @python_2_unicode_compatible
-class SocialToken(models.Model):
+class SocialToken(ShortPrefixedIdModel, models.Model):
+    ID_PREFIX = 'sct'
+
     app = models.ForeignKey(SocialApp, on_delete=models.CASCADE)
     account = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
     token = models.TextField(
