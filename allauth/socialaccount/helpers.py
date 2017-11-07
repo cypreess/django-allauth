@@ -13,13 +13,17 @@ from ..compat import is_anonymous, is_authenticated, reverse
 from .adapter import get_adapter
 from .models import SocialLogin
 from .providers.base import AuthError, AuthProcess
+from django.conf import settings
 
 
 def _process_signup(request, sociallogin):
     auto_signup = get_adapter(request).is_auto_signup_allowed(
         request,
         sociallogin)
-    if not auto_signup:
+    if not settings.REGISTRATION_OPEN:
+        return HttpResponseRedirect(settings.REGISTRATION_CLOSED_URL)
+
+    elif not auto_signup:
         request.session['socialaccount_sociallogin'] = sociallogin.serialize()
         url = reverse('socialaccount_signup')
         ret = HttpResponseRedirect(url)
